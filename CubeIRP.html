@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>cube</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+   <canvas id="myGameArea" width="1200" height="500" style="border:1px solid #e23f3f;"></canvas>
+    <script>
+    
+        function go(point, size, cenX, cenY){
+            ctx.lineTo(cenX+size*point[0],cenY+size*point[1]);
+        }
+        function goAB(pointA, pointB, size, cenX, cenY){
+            walk(pointA, size, cenX, cenY);
+            go(pointB, size, cenX, cenY);
+        }
+        function goABbut(pointA, pointB, size, cenX, cenY, but){
+            if(!(pointA[2] == but || pointB[2] == but)){
+                goAB(pointA, pointB, size, cenX, cenY);
+            }
+        }
+
+
+        function walk(point, size, cenX, cenY){
+            ctx.moveTo(cenX+size*point[0], cenY+size*point[1]);
+        }
+        function walkBut(point, size, cenX, cenY, but){
+            if(!(point[2] == but)){
+                walk(point, size, cenX, cenY);
+            }
+        }
+
+        function rotatecube(mat, cube){
+            for(var x = 0; x<2;x++){
+                for(var y = 0; y<2;y++){
+                    for(var z = 0; z<2;z++){
+                        cube[x][y][z] = matrixPoint(mat,cube[x][y][z]);
+
+                    }
+                }
+            }
+        }
+
+        function rotateP(point, RX, RY, RZ){
+
+             newP = point;
+    //        newP = matrixPoint(Xrot(30), newP);
+             newMat = matrixProduct(Xrot(RX), Yrot(RY));
+            newP =  matrixPoint(matrixProduct(matrixProduct(Xrot(RX), Yrot(RY)),  Zrot(RZ)), point);
+            return(newP);
+        }
+        
+        function matrixProduct(A,B) {
+            size = A.length;
+            var matrix = [];
+            for(var i=0; i<size; i++){
+                matrix[i] = [];
+                for( var j = 0; j<size; j++){
+                    matrix[i][j] = 0;
+                } 
+            }
+            for(var col=0; col<size; col++){
+                for(var row=0; row<size; row++){
+                    for(var numMult = 0; numMult < size; numMult++){
+                        matrix[row][col] += ( A[row][numMult] * B[numMult][col]);
+                    }   
+                }
+            }
+            return(matrix);
+        }
+        function matrixPoint(mat, point){
+            len = mat.length;
+            var newP = [];
+            for(var i = 0; i< len; i++){
+                newP[i] = 0;
+            }
+            for(var row=0; row<len; row++){
+                for(var numMult = 0; numMult < len; numMult++){
+                    newP[row] += ( mat[row][numMult] * point[numMult]);
+                }   
+            }
+            return(newP);
+        }
+        function Xrot(deg){
+            angle = deg * Math.PI /180;
+            return([[1,0,0],
+                    [0,Math.cos(angle),-Math.sin(angle)],
+                    [0,Math.sin(angle),Math.cos(angle)]]
+            );
+        }
+        function Yrot(deg){
+            angle = deg * Math.PI /180;
+            return([
+                    [Math.cos(angle),0,-Math.sin(angle)],
+                    [0,1,0],
+                    [Math.sin(angle),0,Math.cos(angle)]
+        ]);        
+            }
+        function Zrot(deg){
+        angle = deg * Math.PI /180;
+        return([
+                [Math.cos(angle),-Math.sin(angle),0],
+                [Math.sin(angle),Math.cos(angle),0],
+                [0,0,1]
+        ]);        
+        }
+
+        function drawClearV2(size,cenX,cenY){
+            ctx.strokeStyle = "#000000";
+            ctx.beginPath();
+            //(x,y,z)
+            walk(cubeL[0][0][0],size, cenX, cenY);
+            go(cubeL[1][0][0], size,  cenX, cenY);
+            go(cubeL[1][1][0], size,  cenX, cenY);
+            go(cubeL[0][1][0], size,  cenX, cenY);
+            go(cubeL[0][0][0], size,  cenX, cenY);
+            go(cubeL[0][0][1], size,  cenX, cenY);
+            go(cubeL[1][0][1], size,  cenX, cenY);
+            go(cubeL[1][1][1], size,  cenX, cenY);
+            go(cubeL[0][1][1], size, cenX, cenY);
+            go(cubeL[0][0][1], size,  cenX, cenY);
+
+            walk(cubeL[0][1][1],  size,  cenX, cenY);
+            go(cubeL[0][1][0], size,  cenX, cenY);
+
+            walk(cubeL[1][1][1], size,  cenX, cenY);
+            go(cubeL[1][1][0], size,  cenX, cenY);
+
+            walk(cubeL[1][0][1], size,  cenX, cenY);
+            go(cubeL[1][0][0], size,  cenX, cenY);
+        }
+
+        function lowPoint(){
+            var low = 0;
+            for(var x = 0; x<2; x++){
+                for(var y = 0; y<2; y++){
+                    for(var z = 0; z<2; z++){
+                        if(cubeL[x][y][z][2]<low){
+                            low = cubeL[x][y][z][2];
+                        }
+                    }
+                }
+            }
+            return(low);
+        }
+        function drawOpaque(size, cenX, cenY, cube){
+            var low = lowPoint();
+            ctx.strokeStyle = "#000000";
+            ctx.beginPath();
+            goABbut(cube[0][0][0], cube[1][0][0], size,  cenX, cenY, low);
+            goABbut(cube[1][0][0], cube[1][1][0], size,  cenX, cenY, low);
+            goABbut(cube[1][1][0], cube[0][1][0], size,  cenX, cenY, low);
+            goABbut(cube[0][1][0], cube[0][0][0], size,  cenX, cenY, low);
+            goABbut(cube[0][0][0], cube[0][0][1], size,  cenX, cenY, low);
+            goABbut(cube[0][0][1], cube[1][0][1], size,  cenX, cenY, low);
+            goABbut(cube[1][0][1], cube[1][1][1], size,  cenX, cenY, low);
+            
+            goABbut(cube[1][1][1], cube[0][1][1], size,  cenX, cenY, low);
+            goABbut(cube[0][1][1], cube[0][0][1], size,  cenX, cenY, low);
+
+            goABbut(cube[0][1][1], cube[0][1][0], size,  cenX, cenY, low);
+
+            goABbut(cube[1][1][1], cube[1][1][0], size,  cenX, cenY, low);
+
+            goABbut(cube[1][0][1], cube[1][0][0], size,  cenX, cenY, low);
+        }
+
+        function drawClearV1(RX, RY, RZ, size, cenX, cenY){
+            ctx.strokeStyle = "#000000";
+            ctx.beginPath();
+            //(x,y,z)
+            walk(rotateP(cubeL[0][0][0], RX, RY, RZ),size, cenX, cenY);
+            go(rotateP(cubeL[1][0][0], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[1][1][0], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[0][1][0], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[0][0][0], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[0][0][1], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[1][0][1], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[1][1][1], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[0][1][1], RX, RY, RZ), size, cenX, cenY);
+            go(rotateP(cubeL[0][0][1], RX, RY, RZ), size,  cenX, cenY);
+            walk(rotateP(cubeL[0][1][1], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[0][1][0], RX, RY, RZ), size,  cenX, cenY);
+            walk(rotateP(cubeL[1][1][1], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[1][1][0], RX, RY, RZ), size,  cenX, cenY);
+            walk(rotateP(cubeL[1][0][1], RX, RY, RZ), size,  cenX, cenY);
+            go(rotateP(cubeL[1][0][0], RX, RY, RZ), size,  cenX, cenY);
+        }
+
+        function earase(){
+            ctx.clearRect(0,0,1200,500);
+        }
+
+        var c = document.getElementById("myGameArea");
+        var ctx = c.getContext("2d");
+
+        var p111 =[1,1,1];
+        var p110 =[1,1,-1];
+        var p101 =[1,-1,1];
+        var p100 =[1,-1,-1];
+        var p011 =[-1,1,1];
+        var p010 =[-1,1,-1];
+        var p001 =[-1,-1,1];
+        var p000 =[-1,-1,-1];
+
+        var cubeL = [[[p000,p001],[p010,p011]],
+                    [[p100,p101],[p110,p111]]];
+
+        cubeL.left = cubeL[0];
+        cubeL.right = cubeL[1];
+
+        cubeL.up = [cubeL[0][1],cubeL[1][1]];
+        cubeL.down = [cubeL[0][0],cubeL[1][0]];
+
+        cubeL.front = [[cubeL[0][0][1], cubeL[0][1][1]],
+                       [cubeL[1][0][1], cubeL[1][1][1]]];
+        cubeL.back = [[cubeL[0][0][0], cubeL[0][1][0]],
+                      [cubeL[1][0][0], cubeL[1][1][0]]];
+
+        class Cube {
+            constructor(size, cenX, cenY, cube){
+                this.size = size;
+                this.cenX = cenX;
+                this.cenY = cenY;
+                this.cube = cube;
+         /*       this.p111 =[1,1,1];
+                this.p110 =[1,1,-1];
+                this.p101 =[1,-1,1];
+                this.p100 =[1,-1,-1];
+                this.p011 =[-1,1,1];
+                this.p010 =[-1,1,-1];
+                this.p001 =[-1,-1,1];
+                this.p000 =[-1,-1,-1];
+                this.cube = [[[p000,p001],[p010,p011]],
+                              [[p100,p101],[p110,p111]]];
+                this.left = cube[0];
+                this.right = cube[1];
+
+                this.up = [cube[0][1],cube[1][1]];
+                this.down = [cube[0][0],cube[1][0]];
+
+                this.front = [[cube[0][0][1], cube[0][1][1]],
+                              [cube[1][0][1], cube[1][1][1]]];
+                this.back = [[cube[0][0][0], cube[0][1][0]],
+                             [cube[1][0][0], cube[1][1][0]]];
+*/
+         
+            }
+             get low(){
+                var low = 0;
+                for(var x = 0; x<2; x++){
+                    for(var y = 0; y<2; y++){
+                        for(var z = 0; z<2; z++){
+                            if(this.cube[x][y][z][2]<low){
+                                low = this.cube[x][y][z][2];//z value of point xyz
+                            }
+                        }
+                    }
+                }
+                return(low);
+            }
+            drawOpaque(){
+                var size = this.size;
+                var cenX = this.cenX;
+                var cenY = this.cenY;
+                var low = this.low;
+                ctx.strokeStyle = "#000000";
+                ctx.beginPath();
+                goABbut(this.cube[0][0][0], this.cube[1][0][0], size,  cenX, cenY, low);
+                goABbut(this.cube[1][0][0], this.cube[1][1][0], size,  cenX, cenY, low);
+                goABbut(this.cube[1][1][0], this.cube[0][1][0], size,  cenX, cenY, low);
+                goABbut(this.cube[0][1][0], this.cube[0][0][0], size,  cenX, cenY, low);
+                goABbut(this.cube[0][0][0], this.cube[0][0][1], size,  cenX, cenY, low);
+                goABbut(this.cube[0][0][1], this.cube[1][0][1], size,  cenX, cenY, low);
+                goABbut(this.cube[1][0][1], this.cube[1][1][1], size,  cenX, cenY, low);
+                goABbut(this.cube[1][1][1], this.cube[0][1][1], size,  cenX, cenY, low);
+                goABbut(this.cube[0][1][1], this.cube[0][0][1], size,  cenX, cenY, low);
+
+                goABbut(this.cube[0][1][1], this.cube[0][1][0], size,  cenX, cenY, low);
+
+                goABbut(this.cube[1][1][1], this.cube[1][1][0], size,  cenX, cenY, low);
+
+                goABbut(this.cube[1][0][1], this.cube[1][0][0], size,  cenX, cenY, low);
+            }
+
+            rotatecube(mat){
+            for(var x = 0; x<2;x++){
+                for(var y = 0; y<2;y++){
+                    for(var z = 0; z<2;z++){
+                        this.cube[x][y][z] = matrixPoint(mat,this.cube[x][y][z]);
+                    }
+                }
+            }
+        }
+        
+    } // end of cube class
+        hihi = new Cube(50,200,200, cubeL);
+        console.log(hihi.low);
+
+
+        //continue class work
+        function drawSide(side){// input: x,y,z and 0,1 gives 1 of 6 sides
+            goAB(side[0][0], side[0][1], size,  cenX, cenY);
+            goAB(side[0][0], side[0][1], size,  cenX, cenY);
+            goAB(side[0][0], side[0][1], size,  cenX, cenY);
+            goAB(side[0][0], side[0][1], size,  cenX, cenY);
+            
+        }
+
+         
+
+        
+//assigning each point up, right, front...
+        for(var x = 0; x<2;x++){
+            for(var y = 0; y<2;y++){
+                for(var z = 0; z<2;z++){
+                    if(x == 0){
+                        cubeL[x][y][z].RL = 0;
+                    } else {
+                        cubeL[x][y][z].RL = 1;
+                    }
+                    if(y == 0){
+                        cubeL[x][y][z].UD = 0;
+                    } else {
+                        cubeL[x][y][z].UD = 1;
+                    }
+                    if(z == 0){
+                        cubeL[x][y][z].FB = 0;
+                    } else {
+                        cubeL[x][y][z].FB = 1;
+                    }
+                }
+            }
+        }
+
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+
+        var userXrot = Math.random()*90; // prompt("X between 0 and 90");
+        var userYrot = Math.random()*90; //prompt("Y between 0 and 90");
+        var userZrot = Math.random()*90;  //prompt("Z between 0 and 90");
+        var GRotSpeed = 5;
+        var GMoveSpeed = 5;
+        var Gsize = 50;
+        var GcenX = 400;
+        var GcenY = 200;
+        var GsizeSpeed = 1.03;
+ //***********   hihi.drawOpaque();
+
+        rotatecube(Xrot(userXrot), cubeL);
+        rotatecube(Zrot(userYrot), cubeL);
+        rotatecube(Yrot(userZrot), cubeL);
+
+        drawOpaque( Gsize, GcenX, GcenY, cubeL);
+
+        ctx.stroke();
+        
+
+        function polyPoint(numPoly,num){
+            if(num>totPoint(numPoly)){
+                return(polyPoint(numPoly,num-numPoly));
+            } else if(num<1){
+                return(polyPoint(numPoly,num+numPoly));
+            }
+            if(numPoly==0){
+                if(num==1){
+                    return([1,0]);
+                }
+                if(num==2){
+                    return([-1,0]);
+                }
+                if(num==3){
+                    return([0,Math.sqrt(3)]);
+                }
+            } else {
+                var a = polyPoint(numPoly-1,Math.ceil(num/2));
+                var b = polyPoint(numPoly-1,Math.ceil(num/2)+1);
+                if(num % 2 ==0){
+                    return([b[0]*2/3+a[0]*1/3,b[1]*2/3+a[1]*1/3]);
+                } else {
+                    return([b[0]*1/3+a[0]*2/3,b[1]*1/3+a[1]*2/3]);
+                }
+                
+            }
+        }
+        function totPoint(numPoly){
+            return(3*Math.pow(2,numPoly));
+        }
+        function drawPoly(sides){
+            ctx.beginPath();
+            var po = polyPoint(sides,1);
+            ctx.lineTo(200+50*po[0],200+50*po[1]);
+            earase();
+            var tot = totPoint(sides);
+            
+            
+            for(var i=1;i<tot+1;i++){
+                po = polyPoint(sides,i);
+                ctx.lineTo(200+50*po[0],200+50*po[1]);
+            }
+        }
+        var lastPoly = 1;
+        document.addEventListener( 'keydown', (l) => {
+    switch (l.key) {
+        case 'c':
+            earase();
+
+            ctx.beginPath();
+            drawPoly(lastPoly);
+            lastPoly++;
+            ctx.stroke();
+         //   earase();
+
+            
+            
+
+        case 'ArrowUp':
+            ctx.beginPath();
+            //earase(userXrot,userYrot,userZrot, 50, 200, 200);
+            earase();
+
+        //    console.log("left pressed");
+           // userXrot -= GRotSpeed;
+            rotatecube(Xrot(GRotSpeed), cubeL);
+        //    drawClearV2(Gsize, GcenX, GcenY);
+        //    drawClearV1(userXrot,userYrot,userZrot, Gsize, GcenX, GcenY);
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break; 
+
+        case 'ArrowDown':
+        //    console.log("right pressed");
+            earase();
+            ctx.beginPath();
+            rotatecube(Xrot(-GRotSpeed), cubeL);
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break; 
+
+        case 'ArrowLeft':
+        //    console.log("up pressed");
+            earase();
+            ctx.beginPath();
+            rotatecube(Yrot(GRotSpeed), cubeL);
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break; 
+
+        case 'ArrowRight':
+        //    console.log("down pressed");
+            earase();
+            ctx.beginPath();
+            rotatecube(Yrot(-GRotSpeed), cubeL);
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;  
+        
+        case 'n':
+      //      console.log("PageUp pressed");
+            earase();
+            ctx.beginPath();
+            rotatecube(Zrot(-GRotSpeed), cubeL);
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;  
+       
+        case 'm':
+         //   console.log("PageDown pressed");
+            earase();
+            ctx.beginPath();
+            rotatecube(Zrot(GRotSpeed), cubeL);
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;  
+       case 'PageUp':
+          //      console.log("PageUp pressed");
+                earase();
+                ctx.beginPath();
+                rotatecube(Zrot(-GRotSpeed), cubeL);
+                drawOpaque(Gsize, GcenX, GcenY, cubeL);
+                ctx.stroke();
+                break;  
+           
+            case 'PageDown':
+             //   console.log("PageDown pressed");
+                earase();
+                ctx.beginPath();
+                rotatecube(Zrot(GRotSpeed), cubeL);
+                drawOpaque(Gsize, GcenX, GcenY, cubeL);
+                ctx.stroke();
+                break;  
+ 
+ 
+ 
+ 
+ 
+ 
+        case '-':
+         //   console.log("PageDown pressed");
+            earase();
+            Gsize = Gsize / GsizeSpeed;
+            ctx.beginPath();
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+
+           // drawClearV1(userXrot,userYrot,userZrot,   Gsize, GcenX, GcenY );
+            ctx.stroke();
+            break;  
+     
+        case '=':
+         //   console.log("PageDown pressed");
+            earase();
+            Gsize = Gsize * GsizeSpeed;
+            ctx.beginPath();
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+
+          //  drawClearV1(userXrot,userYrot,userZrot,   Gsize, GcenX, GcenY );
+            ctx.stroke();
+            break;  
+
+        case 'w':
+         //   console.log("PageDown pressed");
+            earase();
+            GcenY -= GMoveSpeed;
+            ctx.beginPath();
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;  
+            
+        case 's':
+         //   console.log("PageDown pressed");
+            earase();
+            GcenY += GMoveSpeed;
+            ctx.beginPath();
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;  
+            
+        case 'a':
+         //   console.log("PageDown pressed");
+            earase();
+            GcenX -= GMoveSpeed;
+            ctx.beginPath();
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;  
+            
+        case 'd':
+         //   console.log("PageDown pressed");
+            earase();
+            GcenX += GMoveSpeed;
+            ctx.beginPath();
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;     
+        }
+        
+});
+    
+    </script>
+</body>
+</html>
