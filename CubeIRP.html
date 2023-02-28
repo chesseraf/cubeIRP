@@ -295,6 +295,7 @@
         }
         
     } // end of cube class
+
         hihi = new Cube(50,200,200, cubeL);
         console.log(hihi.low);
 
@@ -353,64 +354,78 @@
         rotatecube(Yrot(userZrot), cubeL);
 
         drawOpaque( Gsize, GcenX, GcenY, cubeL);
-
-        ctx.stroke();
         
+        
+        
+        var polyTri = [[1,0,-1],[0,Math.sqrt(3),0]];
 
-        function polyPoint(numPoly,num){
-            if(num>totPoint(numPoly)){
-                return(polyPoint(numPoly,num-numPoly));
-            } else if(num<1){
-                return(polyPoint(numPoly,num+numPoly));
-            }
-            if(numPoly==0){
-                if(num==1){
-                    return([1,0]);
-                }
-                if(num==2){
-                    return([-1,0]);
-                }
-                if(num==3){
-                    return([0,Math.sqrt(3)]);
-                }
-            } else {
-                var a = polyPoint(numPoly-1,Math.ceil(num/2));
-                var b = polyPoint(numPoly-1,Math.ceil(num/2)+1);
-                if(num % 2 ==0){
-                    return([b[0]*2/3+a[0]*1/3,b[1]*2/3+a[1]*1/3]);
+
+        function nextPoly(poly){
+            var k=0;
+            var len = poly[0].length;
+            var polyX=poly[0];
+            var polyY=poly[1];
+            var newPolyX;
+            var newPolyY;
+
+            for(var p=0;p<len*2-2;p++){
+                k=Math.floor(p/2);
+                if(p % 2 ==0){
+                    newPolyX[p] = 2/3*(polyX[k])+1/3*polyX[k+1];
+                    newPolyY[p] = 2/3*(polyY[k])+1/3*polyY[k+1];
                 } else {
-                    return([b[0]*1/3+a[0]*2/3,b[1]*1/3+a[1]*2/3]);
+                    newPolyX[p] = 1/3*(polyX[k])+2/3*polyX[k+1];
+                    newPolyY[p] = 1/3*(polyY[k])+2/3*polyY[k+1];
                 }
                 
+                newPolyX[len*2-2] = 2/3*(polyX[len-1])+1/3*polyX[0];
+                newPolyY[len*2-2] = 2/3*(polyY[len-1])+1/3*polyY[0];
+                newPolyX[len*2-1] = 1/3*(polyX[len-1])+2/3*polyX[0];
+                newPolyY[len*2-1] = 1/3*(polyY[len-1])+2/3*polyY[0];
+                
             }
+            return([newPolyX,newPolyY]);
         }
-        function totPoint(numPoly){
-            return(3*Math.pow(2,numPoly));
-        }
-        function drawPoly(sides){
+
+        function drawPoly(poly){
             ctx.beginPath();
-            var po = polyPoint(sides,1);
-            ctx.lineTo(200+50*po[0],200+50*po[1]);
-            earase();
-            var tot = totPoint(sides);
-            
-            
-            for(var i=1;i<tot+1;i++){
-                po = polyPoint(sides,i);
-                ctx.lineTo(200+50*po[0],200+50*po[1]);
+            var k = poly[0].length;
+            ctx.moveTo(100+50*poly[0][k-1],100+50*poly[1][k-1]);
+            for(var i=0;i<k;i++){
+                ctx.lineTo(100+50*poly[0][i],100+50*poly[1][i]);
             }
         }
+    
+        function drawNum(num){
+            var fin = polyTri;
+            for(var i=0;i<num-1;i++){
+                fin = nextPoly(fin);
+            }
+            drawPoly(fin);
+        }
+      /*    
+            var b = polyTri[0].length;
+            ctx.lineTo(100+50*polyTri[0][2],100+50*polyTri[1][2]);
+            for(var i=0;i<3;i++){
+                ctx.lineTo(100+50*polyTri[0][i],100+50*polyTri[1][i]);
+            }
+          //*/
+       //  drawPoly(nextPoly(polyTri));
+        ctx.stroke();
+      
         var lastPoly = 1;
         document.addEventListener( 'keydown', (l) => {
     switch (l.key) {
         case 'c':
-            earase();
+            
+            break;
+            //earase();
 
-            ctx.beginPath();
-            drawPoly(lastPoly);
-            lastPoly++;
-            ctx.stroke();
-         //   earase();
+            //ctx.beginPath();
+            //drawNum(lastPoly);
+            //lastPoly++;
+            //ctx.stroke();
+            //   earase();
 
             
             
@@ -420,17 +435,17 @@
             //earase(userXrot,userYrot,userZrot, 50, 200, 200);
             earase();
 
-        //    console.log("left pressed");
-           // userXrot -= GRotSpeed;
+            //    console.log("left pressed");
+            // userXrot -= GRotSpeed;
             rotatecube(Xrot(GRotSpeed), cubeL);
-        //    drawClearV2(Gsize, GcenX, GcenY);
-        //    drawClearV1(userXrot,userYrot,userZrot, Gsize, GcenX, GcenY);
+            //    drawClearV2(Gsize, GcenX, GcenY);
+            //    drawClearV1(userXrot,userYrot,userZrot, Gsize, GcenX, GcenY);
             drawOpaque(Gsize, GcenX, GcenY, cubeL);
             ctx.stroke();
             break; 
 
         case 'ArrowDown':
-        //    console.log("right pressed");
+            //    console.log("right pressed");
             earase();
             ctx.beginPath();
             rotatecube(Xrot(-GRotSpeed), cubeL);
@@ -439,7 +454,7 @@
             break; 
 
         case 'ArrowLeft':
-        //    console.log("up pressed");
+            //    console.log("up pressed");
             earase();
             ctx.beginPath();
             rotatecube(Yrot(GRotSpeed), cubeL);
@@ -448,53 +463,31 @@
             break; 
 
         case 'ArrowRight':
-        //    console.log("down pressed");
+            //    console.log("down pressed");
             earase();
             ctx.beginPath();
             rotatecube(Yrot(-GRotSpeed), cubeL);
             drawOpaque(Gsize, GcenX, GcenY, cubeL);
             ctx.stroke();
             break;  
-        
+
         case 'n':
-      //      console.log("PageUp pressed");
-            earase();
-            ctx.beginPath();
-            rotatecube(Zrot(-GRotSpeed), cubeL);
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
-            ctx.stroke();
-            break;  
-       
-        case 'm':
-         //   console.log("PageDown pressed");
-            earase();
-            ctx.beginPath();
-            rotatecube(Zrot(GRotSpeed), cubeL);
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
-            ctx.stroke();
-            break;  
-       case 'PageUp':
-          //      console.log("PageUp pressed");
+        case 'PageUp':
+                //      console.log("PageUp pressed");
                 earase();
                 ctx.beginPath();
                 rotatecube(Zrot(-GRotSpeed), cubeL);
                 drawOpaque(Gsize, GcenX, GcenY, cubeL);
                 ctx.stroke();
                 break;  
-           
-            case 'PageDown':
-             //   console.log("PageDown pressed");
-                earase();
-                ctx.beginPath();
-                rotatecube(Zrot(GRotSpeed), cubeL);
-                drawOpaque(Gsize, GcenX, GcenY, cubeL);
-                ctx.stroke();
-                break;  
- 
- 
- 
- 
- 
+        case 'm':
+        case 'PageDown':
+            earase();
+            ctx.beginPath();
+            rotatecube(Zrot(GRotSpeed), cubeL);
+            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break;  
  
         case '-':
          //   console.log("PageDown pressed");
