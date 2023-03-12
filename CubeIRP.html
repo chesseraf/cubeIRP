@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8">
     <title>cube</title>
-    <link rel="stylesheet" href="style.css">
+    <!--<link rel="stylesheet" href="style.css">  -->
 </head>
-   <canvas id="myGameArea" width="1200" height="500" style="border:1px solid #e23f3f;"></canvas>
+   <canvas id="myGameArea" width="800" height="500" style="border:1px solid #e23f3f;"></canvas>
     <script>
     
         function go(point, size, cenX, cenY){
@@ -20,7 +20,6 @@
                 goAB(pointA, pointB, size, cenX, cenY);
             }
         }
-
 
         function walk(point, size, cenX, cenY){
             ctx.moveTo(cenX+size*point[0], cenY+size*point[1]);
@@ -217,13 +216,37 @@
                        [cubeL[1][0][1], cubeL[1][1][1]]];
         cubeL.back = [[cubeL[0][0][0], cubeL[0][1][0]],
                       [cubeL[1][0][0], cubeL[1][1][0]]];
+                      
+        
+        var funMat = [[1/Math.sqrt(3),1/Math.sqrt(6),-1/Math.sqrt(2)],
+                      [1/Math.sqrt(3),-2/Math.sqrt(6),0],
+                      [1/Math.sqrt(3),1/Math.sqrt(6),1/Math.sqrt(2)]];
+                      
+        function TransposeMat(mat){
+            var len = mat.length;
+            var fin = mat;
+            for(var r=0;r<len;r++){
+                for(var c=0;c<len;c++){
+                    fin[r][c]=mat[c][r];
+                }
+            }
+            return(fin);
+        }
+        
+        function BasisChange(ortho,rot){
+            return(mat)
+        }
+
+
 
         class Cube {
-            constructor(size, cenX, cenY, cube){
-                this.size = size;
-                this.cenX = cenX;
-                this.cenY = cenY;
-                this.cube = cube;
+            constructor(Size, CenX, CenY, Cube, RotSpeed, DialationSpeed){
+                this.Size = Size;
+                this.CenX = CenX;
+                this.CenY = CenY;
+                this.Cube = Cube;
+                this.RotSpeed = RotSpeed;
+                this.DialationSpeed = DialationSpeed;
          /*       this.p111 =[1,1,1];
                 this.p110 =[1,1,-1];
                 this.p101 =[1,-1,1];
@@ -252,8 +275,8 @@
                 for(var x = 0; x<2; x++){
                     for(var y = 0; y<2; y++){
                         for(var z = 0; z<2; z++){
-                            if(this.cube[x][y][z][2]<low){
-                                low = this.cube[x][y][z][2];//z value of point xyz
+                            if(this.Cube[x][y][z][2]<low){
+                                low = this.Cube[x][y][z][2];//z value of point xyz
                             }
                         }
                     }
@@ -261,58 +284,83 @@
                 return(low);
             }
             drawOpaque(){
-                var size = this.size;
-                var cenX = this.cenX;
-                var cenY = this.cenY;
+                var size = this.Size;
+                var cenX = this.CenX;
+                var cenY = this.CenY;
                 var low = this.low;
+                var cube = this.Cube;
                 ctx.strokeStyle = "#000000";
                 ctx.beginPath();
-                goABbut(this.cube[0][0][0], this.cube[1][0][0], size,  cenX, cenY, low);
-                goABbut(this.cube[1][0][0], this.cube[1][1][0], size,  cenX, cenY, low);
-                goABbut(this.cube[1][1][0], this.cube[0][1][0], size,  cenX, cenY, low);
-                goABbut(this.cube[0][1][0], this.cube[0][0][0], size,  cenX, cenY, low);
-                goABbut(this.cube[0][0][0], this.cube[0][0][1], size,  cenX, cenY, low);
-                goABbut(this.cube[0][0][1], this.cube[1][0][1], size,  cenX, cenY, low);
-                goABbut(this.cube[1][0][1], this.cube[1][1][1], size,  cenX, cenY, low);
-                goABbut(this.cube[1][1][1], this.cube[0][1][1], size,  cenX, cenY, low);
-                goABbut(this.cube[0][1][1], this.cube[0][0][1], size,  cenX, cenY, low);
+                goABbut(cube[0][0][0], cube[1][0][0], size,  cenX, cenY, low);
+                goABbut(cube[1][0][0], cube[1][1][0], size,  cenX, cenY, low);
+                goABbut(cube[1][1][0], cube[0][1][0], size,  cenX, cenY, low);
+                goABbut(cube[0][1][0], cube[0][0][0], size,  cenX, cenY, low);
+                goABbut(cube[0][0][0], cube[0][0][1], size,  cenX, cenY, low);
+                goABbut(cube[0][0][1], cube[1][0][1], size,  cenX, cenY, low);
+                goABbut(cube[1][0][1], cube[1][1][1], size,  cenX, cenY, low);
+                goABbut(cube[1][1][1], cube[0][1][1], size,  cenX, cenY, low);
+                goABbut(cube[0][1][1], cube[0][0][1], size,  cenX, cenY, low);
 
-                goABbut(this.cube[0][1][1], this.cube[0][1][0], size,  cenX, cenY, low);
+                goABbut(cube[0][1][1], cube[0][1][0], size,  cenX, cenY, low);
 
-                goABbut(this.cube[1][1][1], this.cube[1][1][0], size,  cenX, cenY, low);
+                goABbut(cube[1][1][1], cube[1][1][0], size,  cenX, cenY, low);
 
-                goABbut(this.cube[1][0][1], this.cube[1][0][0], size,  cenX, cenY, low);
+                goABbut(cube[1][0][1], cube[1][0][0], size,  cenX, cenY, low);
             }
 
-            rotatecube(mat){
-            for(var x = 0; x<2;x++){
-                for(var y = 0; y<2;y++){
-                    for(var z = 0; z<2;z++){
-                        this.cube[x][y][z] = matrixPoint(mat,this.cube[x][y][z]);
+            rotateCube(mat){
+                for(var x = 0; x<2;x++){
+                    for(var y = 0; y<2;y++){
+                        for(var z = 0; z<2;z++){
+                            this.Cube[x][y][z] = matrixPoint(mat,this.Cube[x][y][z]);
+                        }
                     }
                 }
             }
-        }
-        
-    } // end of cube class
+            RotX(forward){
+                if(forward){
+                    this.rotateCube(Xrot(this.RotSpeed));
+                } else {
+                    this.rotateCube(Xrot(-this.RotSpeed));
+                }
+                
+            }
+            RotY(forward){
+                if(forward){
+                    this.rotateCube(Yrot(this.RotSpeed));
+                }else{
+                    this.rotateCube(Yrot(-this.RotSpeed));
+                }
+            }
+            RotZ(forward){
+                if(forward){
+                    this.rotateCube(Zrot(this.RotSpeed));
+                } else {
+                    this.rotateCube(Zrot(-this.RotSpeed));
+                }
+                
+            }
+            
+            RotFun(){
+                console.log(matrixProduct(Xrot(this.RotSpeed),funMat));
+                this.rotateCube(matrixProduct(Xrot(this.RotSpeed),funMat));
+            }
+            
+        } // end of cube class
 
-        hihi = new Cube(50,200,200, cubeL);
-        console.log(hihi.low);
+      //  hihi.drawOpaque();
 
 
         //continue class work
+        /*
         function drawSide(side){// input: x,y,z and 0,1 gives 1 of 6 sides
             goAB(side[0][0], side[0][1], size,  cenX, cenY);
             goAB(side[0][0], side[0][1], size,  cenX, cenY);
             goAB(side[0][0], side[0][1], size,  cenX, cenY);
             goAB(side[0][0], side[0][1], size,  cenX, cenY);
-            
         }
-
-         
-
         
-//assigning each point up, right, front...
+        //assigning each point up, right, front...
         for(var x = 0; x<2;x++){
             for(var y = 0; y<2;y++){
                 for(var z = 0; z<2;z++){
@@ -334,7 +382,7 @@
                 }
             }
         }
-
+*/
         ctx.beginPath();
         ctx.lineWidth = 1;
 
@@ -347,29 +395,31 @@
         var GcenX = 400;
         var GcenY = 200;
         var GsizeSpeed = 1.03;
- //***********   hihi.drawOpaque();
+        
+        hihi = new Cube(Gsize,GcenX,GcenY, cubeL, GRotSpeed, GsizeSpeed);
+        hihi.drawOpaque();
 
+/*
         rotatecube(Xrot(userXrot), cubeL);
         rotatecube(Zrot(userYrot), cubeL);
         rotatecube(Yrot(userZrot), cubeL);
 
         drawOpaque( Gsize, GcenX, GcenY, cubeL);
+        */
         
         
-        
-        var polyTri = [[1,0,-1],[0,Math.sqrt(3),0]];
-
-
+        var polyTri = [[0,Math.sqrt(3),0],[1,0,-1]];//coordinates of triangle
         function nextPoly(poly){
-            var k=0;
-            var len = poly[0].length;
+            var k; 
+            var len = poly[0].length;//length of previous shape
             var polyX=poly[0];
             var polyY=poly[1];
-            var newPolyX;
-            var newPolyY;
+            var newPolyX=[];
+            var newPolyY=[];
 
             for(var p=0;p<len*2-2;p++){
-                k=Math.floor(p/2);
+                k=Math.floor(p/2); //point p on the new shape is between 
+                                   //points k and k+1 of the previous shape
                 if(p % 2 ==0){
                     newPolyX[p] = 2/3*(polyX[k])+1/3*polyX[k+1];
                     newPolyY[p] = 2/3*(polyY[k])+1/3*polyY[k+1];
@@ -377,25 +427,21 @@
                     newPolyX[p] = 1/3*(polyX[k])+2/3*polyX[k+1];
                     newPolyY[p] = 1/3*(polyY[k])+2/3*polyY[k+1];
                 }
-                
                 newPolyX[len*2-2] = 2/3*(polyX[len-1])+1/3*polyX[0];
                 newPolyY[len*2-2] = 2/3*(polyY[len-1])+1/3*polyY[0];
                 newPolyX[len*2-1] = 1/3*(polyX[len-1])+2/3*polyX[0];
                 newPolyY[len*2-1] = 1/3*(polyY[len-1])+2/3*polyY[0];
-                
             }
             return([newPolyX,newPolyY]);
         }
-
         function drawPoly(poly){
             ctx.beginPath();
             var k = poly[0].length;
-            ctx.moveTo(100+50*poly[0][k-1],100+50*poly[1][k-1]);
+            ctx.moveTo(300+200*poly[0][k-1],200+200*poly[1][k-1]);
             for(var i=0;i<k;i++){
-                ctx.lineTo(100+50*poly[0][i],100+50*poly[1][i]);
+                ctx.lineTo(300+200*poly[0][i],200+200*poly[1][i]);
             }
         }
-    
         function drawNum(num){
             var fin = polyTri;
             for(var i=0;i<num-1;i++){
@@ -403,32 +449,24 @@
             }
             drawPoly(fin);
         }
-      /*    
-            var b = polyTri[0].length;
-            ctx.lineTo(100+50*polyTri[0][2],100+50*polyTri[1][2]);
-            for(var i=0;i<3;i++){
-                ctx.lineTo(100+50*polyTri[0][i],100+50*polyTri[1][i]);
-            }
-          //*/
-       //  drawPoly(nextPoly(polyTri));
         ctx.stroke();
-      
         var lastPoly = 1;
+        
         document.addEventListener( 'keydown', (l) => {
     switch (l.key) {
         case 'c':
-            
+            ctx.beginPath();
+            earase();
+            drawNum(lastPoly);
+            //polyTri=nextPoly(polyTri);
+            if(lastPoly<15){
+                lastPoly++;
+            }
+            //ctx.moveTo(300+200/Math.sqrt(3)*2,200);
+            //ctx.arc(300+200/Math.sqrt(3),200,200/Math.sqrt(3),2*Math.PI,false);
+
+            ctx.stroke();
             break;
-            //earase();
-
-            //ctx.beginPath();
-            //drawNum(lastPoly);
-            //lastPoly++;
-            //ctx.stroke();
-            //   earase();
-
-            
-            
 
         case 'ArrowUp':
             ctx.beginPath();
@@ -437,10 +475,21 @@
 
             //    console.log("left pressed");
             // userXrot -= GRotSpeed;
-            rotatecube(Xrot(GRotSpeed), cubeL);
+            hihi.RotX(true);
+            hihi.drawOpaque();
+            //rotatecube(Xrot(GRotSpeed), cubeL);
             //    drawClearV2(Gsize, GcenX, GcenY);
             //    drawClearV1(userXrot,userYrot,userZrot, Gsize, GcenX, GcenY);
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            //drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            ctx.stroke();
+            break; 
+            
+        case 'p':
+            earase();
+            ctx.beginPath();
+            hihi.RotFun();
+            
+            hihi.drawOpaque();
             ctx.stroke();
             break; 
 
@@ -448,8 +497,11 @@
             //    console.log("right pressed");
             earase();
             ctx.beginPath();
-            rotatecube(Xrot(-GRotSpeed), cubeL);
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.RotX(false);
+            
+            hihi.drawOpaque();
+            //rotatecube(Xrot(-GRotSpeed), cubeL);
+            //drawOpaque(Gsize, GcenX, GcenY, cubeL);
             ctx.stroke();
             break; 
 
@@ -457,8 +509,10 @@
             //    console.log("up pressed");
             earase();
             ctx.beginPath();
-            rotatecube(Yrot(GRotSpeed), cubeL);
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.RotY(true);
+            hihi.drawOpaque();
+            //rotatecube(Yrot(GRotSpeed), cubeL);
+            //drawOpaque(Gsize, GcenX, GcenY, cubeL);
             ctx.stroke();
             break; 
 
@@ -466,8 +520,10 @@
             //    console.log("down pressed");
             earase();
             ctx.beginPath();
-            rotatecube(Yrot(-GRotSpeed), cubeL);
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.RotY(false);
+            hihi.drawOpaque();
+            // rotatecube(Yrot(-GRotSpeed), cubeL);
+            //drawOpaque(Gsize, GcenX, GcenY, cubeL);
             ctx.stroke();
             break;  
 
@@ -476,16 +532,20 @@
                 //      console.log("PageUp pressed");
                 earase();
                 ctx.beginPath();
-                rotatecube(Zrot(-GRotSpeed), cubeL);
-                drawOpaque(Gsize, GcenX, GcenY, cubeL);
+                hihi.RotZ(false);
+                hihi.drawOpaque();
+                //rotatecube(Zrot(-GRotSpeed), cubeL);
+                //drawOpaque(Gsize, GcenX, GcenY, cubeL);
                 ctx.stroke();
                 break;  
         case 'm':
         case 'PageDown':
             earase();
             ctx.beginPath();
-            rotatecube(Zrot(GRotSpeed), cubeL);
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.RotZ(true);
+            hihi.drawOpaque();
+            //rotatecube(Zrot(GRotSpeed), cubeL);
+            //drawOpaque(Gsize, GcenX, GcenY, cubeL);
             ctx.stroke();
             break;  
  
