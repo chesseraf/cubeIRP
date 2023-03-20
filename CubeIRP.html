@@ -233,44 +233,64 @@
             return(fin);
         }
         
-        function BasisChange(ortho,rot){
-            return(mat)
+        function BasisChange(ortho,mat){
+            
+            // S(S-1 M S *R)S-1
+            var inv = TransposeMat(ortho);
+            var newBase = matrixProduct(matrixProduct(inv,mat),ortho);
+            console.log(inv+" "+mat+""+ortho);
+            return(newBase);
+            //return(matrixProduct(matrixProduct(TransposeMat(ortho),rot),ortho));
+        }
+        function BasisRot(ortho,mat,rot){
+            var inv = TransposeMat(ortho);
+            console.log(rot/*+"\n "+mat+"\n"+ortho*/);
+
+            return(BasisChange(inv,MatrixProduct(BasisChange(ortho,mat),rot)));
         }
 
 
 
         class Cube {
-            constructor(Size, CenX, CenY, Cube, RotSpeed, DialationSpeed){
+            constructor(Size, CenX, CenY, Cube, RotSpeed, DialationSpeed, MoveSpeed){
+                this.MoveSpeed = MoveSpeed;
                 this.Size = Size;
                 this.CenX = CenX;
                 this.CenY = CenY;
                 this.Cube = Cube;
                 this.RotSpeed = RotSpeed;
                 this.DialationSpeed = DialationSpeed;
-         /*       this.p111 =[1,1,1];
-                this.p110 =[1,1,-1];
-                this.p101 =[1,-1,1];
-                this.p100 =[1,-1,-1];
-                this.p011 =[-1,1,1];
-                this.p010 =[-1,1,-1];
-                this.p001 =[-1,-1,1];
-                this.p000 =[-1,-1,-1];
-                this.cube = [[[p000,p001],[p010,p011]],
-                              [[p100,p101],[p110,p111]]];
-                this.left = cube[0];
-                this.right = cube[1];
-
-                this.up = [cube[0][1],cube[1][1]];
-                this.down = [cube[0][0],cube[1][0]];
-
-                this.front = [[cube[0][0][1], cube[0][1][1]],
-                              [cube[1][0][1], cube[1][1][1]]];
-                this.back = [[cube[0][0][0], cube[0][1][0]],
-                             [cube[1][0][0], cube[1][1][0]]];
-*/
+            
          
             }
-             get low(){
+            MoveRight(moveRight){
+                if(moveRight){
+                    this.CenX+=this.MoveSpeed;
+                } else{
+                    this.CenX-=this.MoveSpeed;
+                }
+                
+            }
+            MoveUp(moveUp){
+                if(moveUp){
+                    this.CenY+=this.MoveSpeed;
+                } else{
+                    this.CenY-=this.MoveSpeed;
+                }
+                
+            }
+
+
+            Dialate(forwardBool){
+
+                if(forwardBool){
+                    this.size = this.size * (1+this.DialationSpeed/100);
+                } else {
+                    this.size = this.size/(1+this.DialationSpeed/100);
+                }
+                
+            }
+            get low(){
                 var low = 0;
                 for(var x = 0; x<2; x++){
                     for(var y = 0; y<2; y++){
@@ -342,47 +362,19 @@
             }
             
             RotFun(){
-                console.log(matrixProduct(Xrot(this.RotSpeed),funMat));
-                this.rotateCube(matrixProduct(Xrot(this.RotSpeed),funMat));
+                for(var x = 0; x<2;x++){
+                    for(var y = 0; y<2;y++){
+                        for(var z = 0; z<2;z++){
+                            this.Cube[x][y][z] = BasisRot(funMat,this.Cube[x][y][z],Xrot(this.RotSpeed));
+                            console.log(this.Cube[x][y][z]);
+                        }
+                    }
+                }
+                //this.rotateCube(BasisChange(funMat,Xrot(this.RotSpeed)));
             }
             
         } // end of cube class
 
-      //  hihi.drawOpaque();
-
-
-        //continue class work
-        /*
-        function drawSide(side){// input: x,y,z and 0,1 gives 1 of 6 sides
-            goAB(side[0][0], side[0][1], size,  cenX, cenY);
-            goAB(side[0][0], side[0][1], size,  cenX, cenY);
-            goAB(side[0][0], side[0][1], size,  cenX, cenY);
-            goAB(side[0][0], side[0][1], size,  cenX, cenY);
-        }
-        
-        //assigning each point up, right, front...
-        for(var x = 0; x<2;x++){
-            for(var y = 0; y<2;y++){
-                for(var z = 0; z<2;z++){
-                    if(x == 0){
-                        cubeL[x][y][z].RL = 0;
-                    } else {
-                        cubeL[x][y][z].RL = 1;
-                    }
-                    if(y == 0){
-                        cubeL[x][y][z].UD = 0;
-                    } else {
-                        cubeL[x][y][z].UD = 1;
-                    }
-                    if(z == 0){
-                        cubeL[x][y][z].FB = 0;
-                    } else {
-                        cubeL[x][y][z].FB = 1;
-                    }
-                }
-            }
-        }
-*/
         ctx.beginPath();
         ctx.lineWidth = 1;
 
@@ -396,7 +388,7 @@
         var GcenY = 200;
         var GsizeSpeed = 1.03;
         
-        hihi = new Cube(Gsize,GcenX,GcenY, cubeL, GRotSpeed, GsizeSpeed);
+        hihi = new Cube(Gsize,GcenX,GcenY, cubeL, GRotSpeed, GsizeSpeed, GMoveSpeed);
         hihi.drawOpaque();
 
 /*
@@ -458,29 +450,21 @@
             ctx.beginPath();
             earase();
             drawNum(lastPoly);
-            //polyTri=nextPoly(polyTri);
             if(lastPoly<15){
                 lastPoly++;
             }
             //ctx.moveTo(300+200/Math.sqrt(3)*2,200);
             //ctx.arc(300+200/Math.sqrt(3),200,200/Math.sqrt(3),2*Math.PI,false);
-
             ctx.stroke();
             break;
 
         case 'ArrowUp':
             ctx.beginPath();
-            //earase(userXrot,userYrot,userZrot, 50, 200, 200);
             earase();
 
-            //    console.log("left pressed");
-            // userXrot -= GRotSpeed;
             hihi.RotX(true);
             hihi.drawOpaque();
-            //rotatecube(Xrot(GRotSpeed), cubeL);
-            //    drawClearV2(Gsize, GcenX, GcenY);
-            //    drawClearV1(userXrot,userYrot,userZrot, Gsize, GcenX, GcenY);
-            //drawOpaque(Gsize, GcenX, GcenY, cubeL);
+
             ctx.stroke();
             break; 
             
@@ -552,9 +536,10 @@
         case '-':
          //   console.log("PageDown pressed");
             earase();
-            Gsize = Gsize / GsizeSpeed;
+            //Gsize = Gsize / GsizeSpeed;
+            hihi.Dialate(false);
             ctx.beginPath();
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.drawOpaque();
 
            // drawClearV1(userXrot,userYrot,userZrot,   Gsize, GcenX, GcenY );
             ctx.stroke();
@@ -563,9 +548,9 @@
         case '=':
          //   console.log("PageDown pressed");
             earase();
-            Gsize = Gsize * GsizeSpeed;
+            hihi.Dialate(true);
             ctx.beginPath();
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.drawOpaque();
 
           //  drawClearV1(userXrot,userYrot,userZrot,   Gsize, GcenX, GcenY );
             ctx.stroke();
@@ -574,36 +559,40 @@
         case 'w':
          //   console.log("PageDown pressed");
             earase();
-            GcenY -= GMoveSpeed;
+            //GcenY -= GMoveSpeed;
+            hihi.MoveUp(false);
             ctx.beginPath();
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.drawOpaque();
             ctx.stroke();
             break;  
             
         case 's':
          //   console.log("PageDown pressed");
             earase();
-            GcenY += GMoveSpeed;
+            //GcenY += GMoveSpeed;
+            hihi.MoveUp(true)
             ctx.beginPath();
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.drawOpaque();
             ctx.stroke();
             break;  
             
         case 'a':
          //   console.log("PageDown pressed");
             earase();
-            GcenX -= GMoveSpeed;
+            //GcenX -= GMoveSpeed;
+            hihi.MoveRight(false);
             ctx.beginPath();
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.drawOpaque();
             ctx.stroke();
             break;  
             
         case 'd':
          //   console.log("PageDown pressed");
             earase();
-            GcenX += GMoveSpeed;
+            hihi.MoveRight(true);
+            //GcenX += GMoveSpeed;
             ctx.beginPath();
-            drawOpaque(Gsize, GcenX, GcenY, cubeL);
+            hihi.drawOpaque();
             ctx.stroke();
             break;     
         }
