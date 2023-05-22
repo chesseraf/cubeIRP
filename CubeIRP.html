@@ -20,7 +20,6 @@
                 goAB(pointA, pointB, size, cenX, cenY);
             }
         }
-
         function walk(point, size, cenX, cenY){
             ctx.moveTo(cenX+size*point[0], cenY+size*point[1]);
         }
@@ -218,13 +217,12 @@
                       [cubeL[1][0][0], cubeL[1][1][0]]];
                       
         
-        var funMat = [[1/Math.sqrt(3),1/Math.sqrt(6),-1/Math.sqrt(2)],
+        const funMat = [[1/Math.sqrt(3),1/Math.sqrt(6),-1/Math.sqrt(2)],
                       [1/Math.sqrt(3),-2/Math.sqrt(6),0],
                       [1/Math.sqrt(3),1/Math.sqrt(6),1/Math.sqrt(2)]];
-                      
         function TransposeMat(mat){
             var len = mat.length;
-            var fin = mat;
+            var fin = Array(len).fill(null).map(()=> Array(len));
             for(var r=0;r<len;r++){
                 for(var c=0;c<len;c++){
                     fin[r][c]=mat[c][r];
@@ -234,24 +232,22 @@
         }
         
         function BasisChange(ortho,mat){
-            
             // S(S-1 M S *R)S-1
             var inv = TransposeMat(ortho);
             var newBase = matrixProduct(matrixProduct(inv,mat),ortho);
-            console.log(inv+" "+mat+""+ortho);
             return(newBase);
             //return(matrixProduct(matrixProduct(TransposeMat(ortho),rot),ortho));
         }
         function BasisRot(ortho,mat,rot){
             var inv = TransposeMat(ortho);
-            console.log(rot/*+"\n "+mat+"\n"+ortho*/);
-
             return(BasisChange(inv,MatrixProduct(BasisChange(ortho,mat),rot)));
         }
 
 
+        console.log(funMat);
 
         class Cube {
+            
             constructor(Size, CenX, CenY, Cube, RotSpeed, DialationSpeed, MoveSpeed){
                 this.MoveSpeed = MoveSpeed;
                 this.Size = Size;
@@ -284,9 +280,9 @@
             Dialate(forwardBool){
 
                 if(forwardBool){
-                    this.size = this.size * (1+this.DialationSpeed/100);
+                    this.Size = this.Size * (1+this.DialationSpeed/100);
                 } else {
-                    this.size = this.size/(1+this.DialationSpeed/100);
+                    this.Size = this.Size/(1+this.DialationSpeed/100);
                 }
                 
             }
@@ -361,16 +357,15 @@
                 
             }
             
-            RotFun(){
-                for(var x = 0; x<2;x++){
-                    for(var y = 0; y<2;y++){
-                        for(var z = 0; z<2;z++){
-                            this.Cube[x][y][z] = BasisRot(funMat,this.Cube[x][y][z],Xrot(this.RotSpeed));
-                            console.log(this.Cube[x][y][z]);
-                        }
-                    }
+            RotFun(func,forward){
+                this.rotateCube(TransposeMat(funMat));
+                if(forward){
+                    this.rotateCube(func(this.RotSpeed));
+                }else{
+                    this.rotateCube(func(-this.RotSpeed));
                 }
-                //this.rotateCube(BasisChange(funMat,Xrot(this.RotSpeed)));
+                
+                this.rotateCube(funMat);
             }
             
         } // end of cube class
@@ -390,14 +385,6 @@
         
         hihi = new Cube(Gsize,GcenX,GcenY, cubeL, GRotSpeed, GsizeSpeed, GMoveSpeed);
         hihi.drawOpaque();
-
-/*
-        rotatecube(Xrot(userXrot), cubeL);
-        rotatecube(Zrot(userYrot), cubeL);
-        rotatecube(Yrot(userZrot), cubeL);
-
-        drawOpaque( Gsize, GcenX, GcenY, cubeL);
-        */
         
         
         var polyTri = [[0,Math.sqrt(3),0],[1,0,-1]];//coordinates of triangle
@@ -471,7 +458,53 @@
         case 'p':
             earase();
             ctx.beginPath();
-            hihi.RotFun();
+            
+            hihi.RotFun(Xrot,true);
+            
+            hihi.drawOpaque();
+            ctx.stroke();
+            break; 
+        case 'o':
+            earase();
+            ctx.beginPath();
+            
+            hihi.RotFun(Yrot,true);
+            
+            hihi.drawOpaque();
+            ctx.stroke();
+            break; 
+        case 'l':
+            earase();
+            ctx.beginPath();
+            
+            hihi.RotFun(Zrot,true);
+            
+            hihi.drawOpaque();
+            ctx.stroke();
+            break; 
+        case 'u':
+            earase();
+            ctx.beginPath();
+            
+            hihi.RotFun(Xrot,false);
+            
+            hihi.drawOpaque();
+            ctx.stroke();
+            break; 
+        case 'i':
+            earase();
+            ctx.beginPath();
+            
+            hihi.RotFun(Yrot,false);
+            
+            hihi.drawOpaque();
+            ctx.stroke();
+            break; 
+        case 'k':
+            earase();
+            ctx.beginPath();
+            
+            hihi.RotFun(Zrot,false);
             
             hihi.drawOpaque();
             ctx.stroke();
